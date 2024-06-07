@@ -1,0 +1,7 @@
+Flask
+pandas
+numpy
+matplotlib
+alpha_vantage
+markupsafe
+python-dotenv

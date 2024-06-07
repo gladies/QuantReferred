@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Analysis</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stock Analysis</h1>
+    <form method="post">
+        <label for="stock_symbol">Stock Symbol:</label>
+        <input type="text" id="stock_symbol" name="stock_symbol" required>
+        <br>
+        <label for="hold_period">Hold Period (days):</label>
+        <input type="number" id="hold_period" name="hold_period" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+    {% if backtest_msg %}
+    <h2>Backtest Result</h2>
+    <p>{{ backtest_msg }}</p>
+    {% endif %}
+    {% if plot_url %}
+    <h2>Stock Price Chart</h2>
+    <img src="{{ plot_url }}" alt="Stock Price Chart">
+    {% endif %}
+    {% if data_html %}
+    <h2>Stock Data (Last 90 Days)</h2>
+    <div>{{ data_html | safe }}</div>
+    {% endif %}
+</body>
+</html>
+
