@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 import io
@@ -41,3 +43,4 @@ def backtest_strategy(data, hold_period):
 
     return_rate = (sell_price - buy_price) / buy_price
     return return_rate
+
