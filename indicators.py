@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from alpha_vantage.timeseries import TimeSeries
+from datetime import datetime, timedelta
 
 def calculate_rsi(data, window):
     delta = data['Close'].diff()
@@ -59,7 +61,7 @@ def calculate_adx(data, window):
 
     return adx
 
-def should_buy(row):
+def should_buy(filtered_data):
     weights = {
         'sma_crossover': 0.25,
         'rsi': 0.15,
@@ -69,31 +71,53 @@ def should_buy(row):
         'adx': 0.15
     }
     score = 0
-    if row['SMA50'] > row['SMA200']:
+    if filtered_data['SMA50'].iloc[-1] > filtered_data['SMA200'].iloc[-1]:
         score += weights['sma_crossover']
-    if row['RSI'] < 30:
+    if filtered_data['RSI'].iloc[-1] < 30:
         score += weights['rsi']
-    if row['Close'] <= row['Lower Band']:
+    if filtered_data['Close'].iloc[-1] <= filtered_data['Lower Band'].iloc[-1]:
         score += weights['bollinger']
-    if row['MACD'] > row['Signal']:
+    if filtered_data['MACD'].iloc[-1] > filtered_data['Signal'].iloc[-1]:
         score += weights['macd']
-    if row['Williams %R'] < -80:
+    if filtered_data['Williams %R'].iloc[-1] < -80:
         score += weights['williams_r']
-    if row['ADX'] > 20:
+    if filtered_data['ADX'].iloc[-1] > 20:
         score += weights['adx']
-    return 'Buy' if score >= 0.7 else ''
+    return score >= 0.7  # Adjust the threshold as needed
 
-def calculate_buy_signals(data):
-    data['SMA50'] = data['Close'].rolling(window=50, min_periods=1).mean()
-    data['SMA200'] = data['Close'].rolling(window=200, min_periods=1).mean()
-    data['RSI'] = calculate_rsi(data, 14)
-    data['MACD'], data['Signal'] = calculate_macd(data)
-    mb, ub, lb = calculate_bollinger_bands(data, 20, 2)
-    data['Middle Band'] = mb
-    data['Upper Band'] = ub
-    data['Lower Band'] = lb
-    data['ATR'] = calculate_atr(data, 14)
-    data['Williams %R'] = calculate_williams_r(data, 14)
-    data['ADX'] = calculate_adx(data, 14)
-    data['Buy Signal'] = data.apply(should_buy, axis=1)
-    return data
+def filter_stocks(stock_symbols, api_key):
+    buy_signals = []
+    ts = TimeSeries(key=api_key, output_format='pandas')
+
+    for symbol in stock_symbols:
+        try:
+            data, meta_data = ts.get_daily(symbol=symbol, outputsize='full')
+            data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+            data.index = pd.to_datetime(data.index)
+            data = data.sort_index()
+
+            latest_date = data.index.max()
+            start_date = latest_date - timedelta(days=365)
+            # Explicitly create a copy of the filtered DataFrame to modify
+            filtered_data = data[(data.index >= start_date) & (data.index <= latest_date)].copy()
+
+            filtered_data['SMA50'] = filtered_data['Close'].rolling(window=50, min_periods=1).mean()
+            filtered_data['SMA200'] = filtered_data['Close'].rolling(window=200, min_periods=1).mean()
+            filtered_data['RSI'] = calculate_rsi(filtered_data, 14)
+            filtered_data['MACD'], filtered_data['Signal'] = calculate_macd(filtered_data)
+            # Ensure calculations are done and set correctly
+            mb, ub, lb = calculate_bollinger_bands(filtered_data, 20, 2)
+            filtered_data['Middle Band'] = mb
+            filtered_data['Upper Band'] = ub
+            filtered_data['Lower Band'] = lb
+            filtered_data['ATR'] = calculate_atr(filtered_data, 14)
+            filtered_data['Williams %R'] = calculate_williams_r(filtered_data, 14)
+            filtered_data['ADX'] = calculate_adx(filtered_data, 14)
+
+            if should_buy(filtered_data):
+                buy_signals.append(symbol)
+        except Exception as e:
+            print(f"Error processing {symbol}: {e}")
+
+    return buy_signals
+
