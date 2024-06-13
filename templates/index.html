@@ -1,88 +1,66 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Stock Data Visualization</title>
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Analysis</title>
     <style>
-      .container {
-        width: 90%;
-        margin: auto;
-        padding: 20px;
-      }
-      .form-group {
-        margin-bottom: 15px;
-      }
-      .form-control {
-        width: 100%;
-        padding: 10px;
-        box-sizing: border-box;
-      }
-      .btn {
-        display: inline-block;
-        padding: 10px 15px;
-        background-color: #007bff;
-        color: white;
-        text-align: center;
-        border: none;
-        cursor: pointer;
-      }
-      .btn-primary {
-        background-color: #007bff;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
-      th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-      }
-      th {
-        background-color: #f2f2f2;
-        text-align: center;
-      }
-      .signal {
-        font-size: 1.2em;
-        color: green;
-        font-weight: bold;
-      }
-      .no-signal {
-        font-size: 1.2em;
-        color: red;
-        font-weight: bold;
-      }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .warning {
+            color: red;
+        }
+        input[type="text"], input[type="number"] {
+            width: 25%;
+        }
+        input[type="submit"] {
+            width: 25%;
+        }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Stock Data Visualization</h1>
-      <form method="POST">
-        <div class="form-group">
-          <label for="stock_symbol">Enter Stock Symbol:</label>
-          <input type="text" id="stock_symbol" name="stock_symbol" class="form-control" required>
+</head>
+<body>
+    <h1>Stock Analysis</h1>
+    <form method="post">
+        <div class="input-group">
+            <label for="stock_symbol">Stock Symbol:</label>
+            <input type="text" id="stock_symbol" name="stock_symbol" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
-      {% if plot_url %}
-        <div class="mt-4">
-          <h2>Stock Chart</h2>
-          <img src="data:image/png;base64,{{ plot_url }}" alt="Stock Chart">
+        <div class="input-group">
+            <label for="hold_period">Hold Period (days):</label>
+            <input type="number" id="hold_period" name="hold_period" required>
         </div>
-        <div class="mt-4">
-          <h2>Data Table</h2>
-          {{ data|safe }}
+        <div class="input-group">
+            <label for="threshold">Threshold:</label>
+            <input type="number" step="0.01" id="threshold" name="threshold" value="0.7" required>
         </div>
-        <div class="mt-4">
-          <h2>Buy Signal:</h2>
-          {% if buy_signal %}
-            <p class="signal">Recommended to Buy</p>
-          {% else %}
-            <p class="no-signal">Not Recommended to Buy</p>
-          {% endif %}
-        </div>
-      {% endif %}
-    </div>
-  </body>
+        <input type="submit" value="Submit">
+    </form>
+    {% if backtest_msg %}
+    <h2>Backtest Result</h2>
+    <p>{{ backtest_msg|safe }}</p>
+    {% if insufficient_data %}
+    <p class="warning">Insufficient data for {{ hold_period }} days.</p>
+    {% endif %}
+    {% endif %}
+    {% if plot_url %}
+    <h2>Stock Price Chart</h2>
+    <img src="{{ plot_url }}" alt="Stock Price Chart">
+    {% endif %}
+    {% if data_html %}
+    <h2>Stock Data (Last 90 Days)</h2>
+    <div>{{ data_html|safe }}</div>
+    {% endif %}
+</body>
 </html>
+
+
+
