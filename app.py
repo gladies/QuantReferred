@@ -28,6 +28,30 @@ def percentage_filter(value):
         return "N/A"
     return "{:.2%}".format(value)
 
+def style_data(row):
+    styles = []
+    for col in row.index:
+        val = row[col]
+        color = 'black'
+        if isinstance(val, (int, float)):
+            if col == 'RSI':
+                if val > 70:
+                    color = 'red'
+                elif val < 30:
+                    color = 'green'
+            elif col == 'Williams %R':
+                if val > -20:
+                    color = 'red'
+                elif val < -80:
+                    color = 'green'
+            elif col == 'ADX':
+                if val > 25:
+                    color = 'red'
+                elif val < 20:
+                    color = 'green'
+        styles.append(f'color: {color}')
+    return styles
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     plot_url = None
@@ -85,12 +109,16 @@ def index():
 
         recent_90_days_data = filtered_data.tail(90).sort_index(ascending=False)
         styled_data = recent_90_days_data.style.applymap(lambda x: 'background-color: yellow' if isinstance(x, (int, float)) and x >= threshold else '', subset=['Buy Signal'])
+        styled_data = styled_data.apply(style_data, axis=1, subset=['RSI', 'Williams %R', 'ADX'])
         data_html = styled_data.to_html()
 
     return render_template('index.html', plot_url=plot_url, data_html=Markup(data_html), return_rate=return_rate, backtest_msg=backtest_msg, insufficient_data=insufficient_data, hold_period=hold_period)
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
 
 
 

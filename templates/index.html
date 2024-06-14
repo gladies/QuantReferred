@@ -23,13 +23,16 @@
             width: 25%;
         }
         input[type="submit"] {
-            width: 25%;
+            width: 10%;
         }
     </style>
 </head>
 <body>
     <h1>Stock Analysis</h1>
     <form method="post">
+      {% if buy_signals_today %}
+    <h2>Buying Signal: {{ buy_signals_today|join(', ') }}</h2>
+    {% endif %}
         <div class="input-group">
             <label for="stock_symbol">Stock Symbol:</label>
             <input type="text" id="stock_symbol" name="stock_symbol" required>
@@ -61,6 +64,10 @@
     {% endif %}
 </body>
 </html>
+
+
+
+
 
 
 
