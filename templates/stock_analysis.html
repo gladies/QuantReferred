@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block title %}Stock Analysis{% endblock %}
+
+{% block content %}
+    <h1>Stock Analysis</h1>
+    <form method="post" action="/stock_analysis">
+        <div class="input-group">
+            <label for="stock_symbol">Stock Symbol:</label>
+            <input type="text" id="stock_symbol" name="stock_symbol" required>
+        </div>
+        <div class="input-group">
+            <label for="hold_period">Hold Period (days):</label>
+            <input type="number" id="hold_period" name="hold_period" required>
+        </div>
+        <div class="input-group">
+            <label for="buy_threshold">Buy Threshold:</label>
+            <input type="number" step="0.01" id="buy_threshold" name="buy_threshold" value="0.7" required>
+        </div>
+        <div class="input-group">
+            <label for="sell_threshold">Sell Threshold:</label>
+            <input type="number" step="0.01" id="sell_threshold" name="sell_threshold" value="0.7" required>
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+
+    {% if plot_url %}
+        <h2>Stock Price Chart</h2>
+        <img src="{{ plot_url }}" alt="Stock Price Chart">
+    {% endif %}
+
+    {% if data_html %}
+        <h2>Stock Data (Last 90 Days)</h2>
+        <div>{{ data_html|safe }}</div>
+    {% endif %}
+
+    {% if backtest_msg %}
+        <h2>Backtest Result</h2>
+        <p>{{ backtest_msg|safe }}</p>
+        {% if insufficient_data %}
+            <p class="warning">Insufficient data for {{ hold_period }} days.</p>
+        {% endif %}
+    {% endif %}
+
+    <h2>Buy Signals:</h2>
+    <ul>
+        {% if buy_signals %}
+            {% for signal in buy_signals %}
+                <li>{{ signal }}</li>
+            {% endfor %}
+        {% else %}
+            <li>none</li>
+        {% endif %}
+    </ul>
+
+    <h2>Sell Signals:</h2>
+    <ul>
+        {% if sell_signals %}
+            {% for signal in sell_signals %}
+                <li>{{ signal }}</li>
+            {% endfor %}
+        {% else %}
+            <li>none</li>
+        {% endif %}
+    </ul>
+{% endblock %}
+
+
+

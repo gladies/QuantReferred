@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block title %}Referred Stocks{% endblock %}
+
+{% block content %}
+<h1>Referred Stocks</h1>
+<form method="post">
+    <div class="input-group">
+        <label for="data_source">Data Source:</label>
+        <select id="data_source" name="data_source" required>
+            <option value="mock">Mock</option>
+            <option value="real">Real</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <label for="stocks_list">Stocks List (JSON format):</label>
+        <textarea id="stocks_list" name="stocks_list" rows="5" required>{"stocks": ["AAPL", "GOOGL", "MSFT"]}</textarea>
+    </div>
+    <div class="input-group">
+        <label for="buy_threshold">Buy Threshold:</label>
+        <input type="number" step="0.01" id="buy_threshold" name="buy_threshold" value="0.7" required>
+    </div>
+    <div class="input-group">
+        <label for="sell_threshold">Sell Threshold:</label>
+        <input type="number" step="0.01" id="sell_threshold" name="sell_threshold" value="0.7" required>
+    </div>
+    <input type="submit" value="Submit">
+</form>
+
+{% if buy_signals or sell_signals %}
+<h2>Results</h2>
+<h3>Buy Signals:</h3>
+<ul>
+    {% if buy_signals %}
+        {% for signal in buy_signals %}
+            <li>{{ signal }}</li>
+        {% endfor %}
+    {% else %}
+        <li>none</li>
+    {% endif %}
+</ul>
+
+<h3>Sell Signals:</h3>
+<ul>
+    {% if sell_signals %}
+        {% for signal in sell_signals %}
+            <li>{{ signal }}</li>
+        {% endfor %}
+    {% else %}
+        <li>none</li>
+    {% endif %}
+</ul>
+{% endif %}
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

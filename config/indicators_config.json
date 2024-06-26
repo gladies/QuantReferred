@@ -1,0 +1,52 @@
+{
+    "indicators": [
+        {
+            "module": "indicators.indicators_base",
+            "class": "Indicator",
+            "params": {
+                "name": "RSI",
+                "calculation_func": "calculate_rsi"
+            }
+        },
+        {
+            "module": "indicators.indicators_base",
+            "class": "Indicator",
+            "params": {
+                "name": "MACD",
+                "calculation_func": "calculate_macd"
+            }
+        },
+        {
+            "module": "indicators.indicators_base",
+            "class": "Indicator",
+            "params": {
+                "name": "BollingerBands",
+                "calculation_func": "calculate_bollinger_bands"
+            }
+        },
+        {
+            "module": "indicators.indicators_base",
+            "class": "Indicator",
+            "params": {
+                "name": "ATR",
+                "calculation_func": "calculate_atr"
+            }
+        },
+        {
+            "module": "indicators.indicators_base",
+            "class": "Indicator",
+            "params": {
+                "name": "WilliamsR",
+                "calculation_func": "calculate_williams_r"
+            }
+        },
+        {
+            "module": "indicators.indicators_base",
+            "class": "Indicator",
+            "params": {
+                "name": "ADX",
+                "calculation_func": "calculate_adx"
+            }
+        }
+    ]
+}

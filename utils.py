@@ -1,50 +1,77 @@
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
 import pandas as pd
-import io
-import base64
+from datetime import datetime, timedelta
 
-def generate_plot(filtered_data, stock_symbol):
+def fetch_data_with_retry(symbol, api_key, retries=3):
+    from alpha_vantage.timeseries import TimeSeries
+    ts = TimeSeries(key=api_key, output_format='pandas')
+    for _ in range(retries):
+        try:
+            data, meta_data = ts.get_daily(symbol=symbol, outputsize='full')
+            return data, meta_data
+        except Exception as e:
+            print(f"Error fetching data: {e}")
+    return None, None
+
+def fetch_data_from_file(file_path):
+    data = pd.read_json(file_path)
+    data.index = pd.to_datetime(data.index)
+    return data
+
+def style_data(val, col):
+    if col == 'RSI':
+        if val > 70:
+            return 'color: red'
+        elif val < 30:
+            return 'color: green'
+    elif col == 'Williams %R':
+        if val > -20:
+            return 'color: red'
+        elif val < -80:
+            return 'color: green'
+    elif col == 'ADX':
+        if val > 25:
+            return 'color: red'
+        elif val < 20:
+            return 'color: green'
+    return 'color: black'
+
+def generate_plot(data, stock_symbol):
+    plt.switch_backend('Agg')
     plt.figure(figsize=(14, 7))
-    plt.plot(filtered_data.index, filtered_data['Close'], label='Close Price', color='blue')
-    plt.plot(filtered_data.index, filtered_data['SMA50'], label='50-Day SMA', color='red')
-    plt.plot(filtered_data.index, filtered_data['SMA200'], label='200-Day SMA', color='green')
-    plt.title(f'Close Price and Moving Averages for {stock_symbol} (Last 1 Year)')
+    plt.plot(data.index, data['Close'], label='Close Price')
+    plt.title(f'Stock Price for {stock_symbol}')
     plt.xlabel('Date')
     plt.ylabel('Price')
     plt.legend()
-    plt.grid(True)
-    
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plot_path = f'static/{stock_symbol}_plot.png'
+    plt.savefig(plot_path)
     plt.close()
-    buf.seek(0)
-    img = base64.b64encode(buf.getvalue()).decode()
-    return f'data:image/png;base64,{img}'
+    return f'/{plot_path}'
 
-def backtest_strategy(data, hold_period):
-    buy_signals = data[data['Buy Signal'] >= 0.7]
-    if buy_signals.empty:
+def backtest_strategy_multiple_signals(data, hold_period):
+    buy_signals = data[data['Buy Signal'] > 0]
+    total_return = 0
+    num_signals = len(buy_signals)
+    
+    if num_signals == 0:
         return None, None, False
+    
+    for buy_date in buy_signals.index:
+        sell_date = buy_date + timedelta(days=hold_period)
+        if sell_date in data.index:
+            buy_price = data.loc[buy_date, 'Close']
+            sell_price = data.loc[sell_date, 'Close']
+            total_return += (sell_price - buy_price) / buy_price
+    
+    average_return = total_return / num_signals if num_signals > 0 else 0
+    first_buy_signal_date = buy_signals.index[0] if not buy_signals.empty else None
+    sufficient_data = all((buy_date + timedelta(days=hold_period)) in data.index for buy_date in buy_signals.index)
+    
+    return average_return, first_buy_signal_date, sufficient_data
 
-    first_buy_signal_date = buy_signals.index[0]
-    buy_price = data.loc[first_buy_signal_date, 'Close']
-    end_date = first_buy_signal_date + pd.Timedelta(days=hold_period)
 
-    sufficient_data = True
-    if end_date in data.index:
-        sell_price = data.loc[end_date, 'Close']
-    else:
-        future_data = data[data.index > end_date]
-        if future_data.empty:
-            sufficient_data = False
-            sell_price = data.iloc[-1]['Close']
-        else:
-            sell_price = future_data.iloc[0]['Close']
 
-    return_rate = (sell_price - buy_price) / buy_price
-    return return_rate, first_buy_signal_date, sufficient_data
 
 
 
